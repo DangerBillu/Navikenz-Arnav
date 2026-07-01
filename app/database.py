@@ -6,12 +6,12 @@ engine = create_engine(database_url)
 
 # def test_connection():
 #     with engine.connect() as connection:
-#         return("Connection to postgresql: successful")
+#         return("Connection to postgresql is successful")
 
 def test_connection():
     try:
 
         with engine.connect() as connection:
-            return("Connection to postgresql: successful")
+            return("connection to postgresql is successful")
     except SQLAlchemyError as e:
         return {"status": "error", "message": f"Connection failed: {str(e)}"}
