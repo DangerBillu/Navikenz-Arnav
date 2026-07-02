@@ -1,9 +1,10 @@
-from pydentic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 class UserCreate(BaseModel):
-    username: str
-    email: str
-    password: str
+    name: str
+    email: EmailStr
+    phone: int
+    age: int
 
 class UserResponse(UserCreate):
     id: int

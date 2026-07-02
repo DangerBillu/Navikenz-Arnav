@@ -10,7 +10,7 @@ services:
 
     environment:
       POSTGRES_USER: arnav
-      POSTGRES_PASSWORD: pass
+      POSTGRES_PASSWORD: password12
       POSTGRES_DB: mydatabase
 
     ports:
