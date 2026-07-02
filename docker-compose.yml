@@ -9,7 +9,7 @@ services:
     restart: always
 
     environment:
-      POSTGRES_USER: arnav
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password12
       POSTGRES_DB: mydatabase
 
