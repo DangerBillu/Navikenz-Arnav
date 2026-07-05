@@ -6,10 +6,6 @@ from app.services import services
 
 router = APIRouter()
 
-@router.post("/createusers", response_model=UserResponse)
-@router.post("/createusers/", response_model=UserResponse, include_in_schema=False)
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    return services.CreateUser(db, user)
 
 @router.get("/createusers")
 @router.get("/createusers/", include_in_schema=False)
@@ -41,6 +37,3 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
         return {"message": "User not found"}
     return {"message": "User deleted successfully"}
 
-@router.get("/users/delete/{user_id}", include_in_schema=False)
-def delete_user_from_browser(user_id: int, db: Session = Depends(get_db)):
-    return delete_user(user_id, db)
