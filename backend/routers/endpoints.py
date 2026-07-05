@@ -1,31 +1,35 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from backend.database.connection import get_db
+from backend.database.connection import check_database_connection, get_db
 from backend.schemas.validation import ForgotPasswordRequest, UserCreate, UserResponse, UserSignIn
 from backend.services import services 
 
 router = APIRouter()
 
 
-@router.get("/createusers")
-@router.get("/createusers/")
-def createUserFromBrowser(
-    name: str | None = None,
-    email: str | None = None,
-    phone: str | None = None,
-    age: int | None = None,
-    password: str | None = None,
-    db: Session = Depends(get_db),
-):
-    if None in (name, email, phone, age, password):
-        return {
-            "example": "/createusers?name=Arnav&email=arnav@example.com&phone=1234567890&age=18&password=secret123",
-        }
-    user = UserCreate(name=name, email=email, phone=phone, age=age, password=password)
-    created_user = services.CreateUser(db, user)
-    if created_user is None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
-    return created_user
+@router.get("/")
+def home():
+    return {
+        "message": "Backend is running",
+        "health_url": "/health",
+        "docs_url": "/docs",
+    }
+
+
+@router.get("/health")
+def health():
+    try:
+        check_database_connection()
+    except Exception as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Database is not connected: {error}",
+        ) from error
+
+    return {
+        "backend": "running",
+        "database": "connected",
+    }
 
 
 @router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -62,14 +66,12 @@ def dashboard(user_id: int, db: Session = Depends(get_db)):
 
 @router.post("/forgot-password")
 def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
-    user = services.GetUserByEmail(db, payload.email)
+    user = services.ResetPassword(db, payload.email, payload.new_password)
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Email is not registered")
 
-    reset_code = services.GenerateForgotPasswordCode()
     return {
-        "message": "Password reset code generated",
-        "reset_code": reset_code,
+        "message": "Password updated successfully",
     }
 
 
@@ -84,4 +86,5 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     if not deleted:
         return {"message": "User not found"}
     return {"message": "User deleted successfully"}
+
 

@@ -19,11 +19,13 @@ def SignInUser(db: Session, credentials: UserSignIn):
         return None
     return db_user
 
-def GetUserByEmail(db: Session, email: str):
-    return crud.get_user_by_email(db=db, email=email)
+def ResetPassword(db: Session, email: str, new_password: str):
+    db_user = crud.get_user_by_email(db, email)
+    if db_user is None:
+        return None
 
-def GenerateForgotPasswordCode():
-    return secrets.token_urlsafe(8)
+    password_hash = HashPassword(new_password)
+    return crud.update_user_password(db, db_user, password_hash)
 
 def DeleteUser(db: Session, user_id: int):
     db_user = crud.get_user(db, user_id)

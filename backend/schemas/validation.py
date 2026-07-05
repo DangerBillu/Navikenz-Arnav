@@ -13,6 +13,7 @@ class UserSignIn(BaseModel):
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
+    new_password: str = Field(min_length=6)
 
 class UserResponse(BaseModel):
     id: int
