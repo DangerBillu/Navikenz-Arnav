@@ -3,8 +3,8 @@ import hmac
 import secrets
 
 from sqlalchemy.orm import Session
-from app.crud import database_operations as crud
-from app.schemas.validation import UserCreate, UserSignIn
+from backend.crud import database_operations as crud
+from backend.schemas.validation import UserCreate, UserSignIn
 
 def CreateUser(db: Session, user: UserCreate):
     if crud.get_user_by_email(db, user.email):
