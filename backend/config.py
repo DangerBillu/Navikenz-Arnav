@@ -16,7 +16,10 @@ class Settings:
             return
 
         self._env = self._load_env_file()
-        self.database_url = self._get("DATABASE_URL", "postgresql://postgres:password12@localhost:5432/mydatabase")
+        self.database_url = self._get(
+            "DATABASE_URL",
+            "postgresql://postgres:password12@localhost:5432/mydatabase",
+        )
         self.app_name = self._get("APP_NAME", "Navikenz Auth API")
         self.secret_key = self._get("SECRET_KEY", "change-this-secret-key")
         self.debug = self._get("DEBUG", "False").lower() == "true"
