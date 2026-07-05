@@ -2,9 +2,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from backend.app.database.connection import Base, engine
-from backend.app.models import user as user_model
-from backend.app.routers import endpoints
+from backend.database.connection import Base, engine
+from backend.models import user as user_model
+from backend.routers import endpoints
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

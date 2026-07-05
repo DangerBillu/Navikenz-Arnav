@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.user import User
+from backend.models.user import User
 
 def create_user(db: Session, user, password_hash: str):
     newuser = User(

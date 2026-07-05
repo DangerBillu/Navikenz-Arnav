@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.database.connection import get_db
-from app.schemas.validation import ForgotPasswordRequest, UserCreate, UserResponse, UserSignIn
-from app.services import services 
+from backend.database.connection import get_db
+from backend.schemas.validation import ForgotPasswordRequest, UserCreate, UserResponse, UserSignIn
+from backend.services import services 
 
 router = APIRouter()
 
 
 @router.get("/createusers")
-@router.get("/createusers/", include_in_schema=False)
-def create_user_from_browser(
+@router.get("/createusers/")
+def createUserFromBrowser(
     name: str | None = None,
     email: str | None = None,
     phone: str | None = None,
@@ -21,7 +21,6 @@ def create_user_from_browser(
         return {
             "example": "/createusers?name=Arnav&email=arnav@example.com&phone=1234567890&age=18&password=secret123",
         }
-
     user = UserCreate(name=name, email=email, phone=phone, age=age, password=password)
     created_user = services.CreateUser(db, user)
     if created_user is None:
