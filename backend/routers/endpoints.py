@@ -6,16 +6,6 @@ from backend.services import services
 
 router = APIRouter()
 
-
-@router.get("/")
-def home():
-    return {
-        "message": "Backend is running",
-        "health_url": "/health",
-        "docs_url": "/docs",
-    }
-
-
 @router.get("/health")
 def health():
     try:
