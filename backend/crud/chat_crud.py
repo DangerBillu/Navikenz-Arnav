@@ -58,6 +58,7 @@ def delete_chat(db: Session, chat_id: int):
     if chat is None:
         return False
 
+    db.query(Message).filter(Message.chat_session_id == chat_id).delete(synchronize_session=False)
     db.delete(chat)
     db.commit()
     return True
@@ -70,6 +71,11 @@ def create_message(db: Session, chat_session_id: int, sent_message: str, receive
         received_message=received_message,
     )
     db.add(message)
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
     db.refresh(message)
     return message

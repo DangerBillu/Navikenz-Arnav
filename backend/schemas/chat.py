@@ -30,3 +30,8 @@ class ChatResponse(BaseModel):
 
 class ChatDetailResponse(ChatResponse):
     messages: list[MessageResponse] = Field(default_factory=list)
+
+
+class ChatDashboardResponse(BaseModel):
+    total_chats: int
+    total_messages: int

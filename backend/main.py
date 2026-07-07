@@ -9,7 +9,13 @@ if __package__ in {None, ""}:
     sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from backend.config import settings
-from backend.database.connection import check_database_connection, engine, ensure_message_schema, ensure_user_schema
+from backend.database.connection import (
+    check_database_connection,
+    engine,
+    ensure_chat_schema,
+    ensure_message_schema,
+    ensure_user_schema,
+)
 from backend.models.chat_session import ChatSession
 from backend.models.message import Message
 from backend.models.user import User
@@ -23,6 +29,7 @@ async def lifespan(_app: FastAPI):
     ChatSession.metadata.create_all(bind=engine)
     Message.metadata.create_all(bind=engine)
     ensure_user_schema()
+    ensure_chat_schema()
     ensure_message_schema()
     yield
 
@@ -43,5 +50,4 @@ app.include_router(chat.router)
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(app, host="127.0.0.1", port=8000)

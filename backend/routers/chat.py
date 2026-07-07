@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from backend.database.connection import get_db
 from backend.schemas.chat import (
+    ChatDashboardResponse,
     ChatDetailResponse,
     ChatResponse,
     CreateChatRequest,
@@ -25,6 +26,14 @@ def create_chat(payload: CreateChatRequest, db: Session = Depends(get_db)):
 @router.get("/user/{user_id}", response_model=list[ChatResponse])
 def get_user_chats(user_id: int, db: Session = Depends(get_db)):
     return chat_services.GetUserChats(db, user_id)
+
+
+@router.get("/user/{user_id}/dashboard", response_model=ChatDashboardResponse)
+def get_user_chat_dashboard(user_id: int, db: Session = Depends(get_db)):
+    stats = chat_services.GetDashboardStats(db, user_id)
+    if stats is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    return stats
 
 
 @router.get("/{chat_id}", response_model=ChatDetailResponse)

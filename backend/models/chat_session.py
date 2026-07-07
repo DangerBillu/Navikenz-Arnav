@@ -15,6 +15,7 @@ class ChatSession(Base):
     title = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
+    user = relationship("User", back_populates="chats")
     messages = relationship(
         "Message",
         back_populates="chat_session",

@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
 from backend.database.connection import Base
 
 class User(Base):
@@ -9,3 +10,9 @@ class User(Base):
     phone = Column(String(20), nullable=False)
     age = Column(Integer, nullable=False)
     password_hash = Column(String(255), nullable=False)
+
+    chats = relationship(
+        "ChatSession",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
