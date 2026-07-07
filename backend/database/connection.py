@@ -21,6 +21,32 @@ def ensure_user_schema():
     with engine.begin() as connection:
         connection.execute(text("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)"))
 
+def ensure_message_schema():
+    inspector = inspect(engine)
+    if "messages" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("messages")}
+    with engine.begin() as connection:
+        if "sent_message" not in columns:
+            connection.execute(text("ALTER TABLE messages ADD COLUMN sent_message TEXT"))
+        if "received_message" not in columns:
+            connection.execute(text("ALTER TABLE messages ADD COLUMN received_message TEXT"))
+        connection.execute(
+            text(
+                "UPDATE messages "
+                "SET sent_message = COALESCE(sent_message, content, ''), "
+                "received_message = COALESCE(received_message, 'hi - under development') "
+                "WHERE sent_message IS NULL OR received_message IS NULL"
+            )
+        )
+
+        if engine.dialect.name == "postgresql":
+            if "sender" in columns:
+                connection.execute(text("ALTER TABLE messages ALTER COLUMN sender DROP NOT NULL"))
+            if "content" in columns:
+                connection.execute(text("ALTER TABLE messages ALTER COLUMN content DROP NOT NULL"))
+
 def check_database_connection():
     with engine.connect() as connection:
         connection.execute(text("SELECT 1"))

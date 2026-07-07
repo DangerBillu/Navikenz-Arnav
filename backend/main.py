@@ -9,16 +9,21 @@ if __package__ in {None, ""}:
     sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from backend.config import settings
-from backend.database.connection import check_database_connection, engine, ensure_user_schema
+from backend.database.connection import check_database_connection, engine, ensure_message_schema, ensure_user_schema
+from backend.models.chat_session import ChatSession
+from backend.models.message import Message
 from backend.models.user import User
-from backend.routers.endpoints import router
+from backend.routers import auth, chat, users
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     check_database_connection()
     User.metadata.create_all(bind=engine)
+    ChatSession.metadata.create_all(bind=engine)
+    Message.metadata.create_all(bind=engine)
     ensure_user_schema()
+    ensure_message_schema()
     yield
 
 
@@ -32,7 +37,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router)
+app.include_router(auth.router)
+app.include_router(users.router)
+app.include_router(chat.router)
 
 if __name__ == "__main__":
     import uvicorn
