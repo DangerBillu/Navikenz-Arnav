@@ -9,7 +9,7 @@ const initialValues = {
   password: '',
 }
 
-function SignInPage() {
+function SignInPage({ onSignUpClick }) {
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState({})
   const [message, setMessage] = useState('')
@@ -66,6 +66,10 @@ function SignInPage() {
 
         <Button className="mt-2 min-h-12" type="submit">
           Sign in
+        </Button>
+
+        <Button className="min-h-11" onClick={onSignUpClick} type="button" variant="secondary">
+          Need an account? Sign up
         </Button>
 
         {message && (
