@@ -1,4 +1,4 @@
-const apiUrl = (import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? '/api' : 'http://localhost:8000')).replace(/\/$/, '')
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8003'
 
 function formatApiError(payload, fallback) {
   const { detail } = payload
@@ -26,7 +26,7 @@ export async function signUpUser(user) {
       body: JSON.stringify(user),
     })
   } catch {
-    throw new Error(`Could not reach the server at ${apiUrl}. Make sure the backend is running on port 8000.`)
+    throw new Error('Could not reach the server. Make sure the backend is running on port 8003.')
   }
 
   const payload = await response.json().catch(() => ({}))

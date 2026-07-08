@@ -35,3 +35,7 @@ def dashboard(user_id: int, db: Session = Depends(get_db)):
         "stats": stats,
     }
 
+@router.get("/getusers")
+def get_users(db: Session = Depends(get_db)):
+    users = user_services.GetAllUsers(db)
+    return {"users": [UserResponse.model_validate(user) for user in users]}
