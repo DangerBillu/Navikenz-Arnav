@@ -2,14 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.database.connection import get_db
-from backend.schemas.chat import (
-    ChatDashboardResponse,
-    ChatDetailResponse,
-    ChatResponse,
-    CreateChatRequest,
-    MessageResponse,
-    SendMessageRequest,
-)
+from backend.schemas.chat import ChatDashboardResponse, ChatDetailResponse, ChatResponse, CreateChatRequest, MessageResponse, SendMessageRequest
 from backend.services import chat_services
 
 router = APIRouter(prefix="/chats", tags=["chats"])

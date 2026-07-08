@@ -1,5 +1,4 @@
 from sqlalchemy.orm import Session, joinedload
-
 from backend.models.chat_session import ChatSession
 from backend.models.message import Message
 

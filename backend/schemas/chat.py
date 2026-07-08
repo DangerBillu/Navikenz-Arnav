@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from pydantic import BaseModel, ConfigDict, Field
 
 class CreateChatRequest(BaseModel):
@@ -27,10 +26,8 @@ class ChatResponse(BaseModel):
     created_at: datetime
     messages: list[MessageResponse] = Field(default_factory=list)
 
-
 class ChatDetailResponse(ChatResponse):
     messages: list[MessageResponse] = Field(default_factory=list)
-
 
 class ChatDashboardResponse(BaseModel):
     total_chats: int
