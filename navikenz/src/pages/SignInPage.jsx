@@ -2,6 +2,7 @@ import { useState } from 'react'
 import AuthShell from '../components/AuthShell'
 import Button from '../components/Button'
 import TextInput from '../components/TextInput'
+import { signInUser } from '../services/authApi'
 import { runSignInValidation } from '../services/validation'
 
 const initialValues = {
@@ -9,10 +10,11 @@ const initialValues = {
   password: '',
 }
 
-function SignInPage({ onSignUpClick }) {
+function SignInPage({ onSignInSuccess, onSignUpClick }) {
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState({})
   const [message, setMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   function updateValue(event) {
     const { name, value } = event.target
@@ -21,27 +23,43 @@ function SignInPage({ onSignUpClick }) {
     setMessage('')
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
 
     const result = runSignInValidation(values)
     setErrors(result.errors)
     setMessage(result.message)
 
-    if (result.isValid) {
+    if (!result.isValid) {
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const user = await signInUser({
+        email: values.email.trim(),
+        password: values.password,
+      })
       setValues(initialValues)
+      onSignInSuccess(user)
+    } catch (error) {
+      setMessage(error.message)
+      setErrors({ form: error.message })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   return (
     <AuthShell>
       <form
-        className="grid gap-5 rounded-lg border border-slate-800 bg-slate-900 p-6 shadow-2xl shadow-black/30"
+        className="grid gap-5 rounded-lg border border-white/20 bg-black p-6 shadow-2xl shadow-white/10"
         onSubmit={handleSubmit}
       >
         <div>
           <h2 className="text-2xl font-black text-white">Welcome back</h2>
-          <p className="mt-1 text-sm text-slate-400">Enter your credentials.</p>
+          <p className="mt-1 text-sm text-white/60">Enter your credentials.</p>
         </div>
 
         <TextInput
@@ -64,8 +82,8 @@ function SignInPage({ onSignUpClick }) {
           value={values.password}
         />
 
-        <Button className="mt-2 min-h-12" type="submit">
-          Sign in
+        <Button className="mt-2 min-h-12" disabled={isSubmitting} type="submit">
+          {isSubmitting ? 'Signing in...' : 'Sign in'}
         </Button>
 
         <Button className="min-h-11" onClick={onSignUpClick} type="button" variant="secondary">

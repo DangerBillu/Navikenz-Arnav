@@ -3,25 +3,61 @@ from backend.models.chat_session import ChatSession
 from backend.models.message import Message
 
 
+def _is_default_chat_title(title: str):
+    return title.strip().lower() == "new chat"
+
+
+def _number_default_chat(chat: ChatSession):
+    if _is_default_chat_title(chat.title):
+        chat.title = f"Chat {chat.id}"
+        return True
+
+    return False
+
+
 def create_chat(db: Session, user_id: int, title: str):
     chat = ChatSession(user_id=user_id, title=title)
     db.add(chat)
     db.commit()
     db.refresh(chat)
+
+    if _number_default_chat(chat):
+        db.commit()
+        db.refresh(chat)
+
     return chat
 
 
 def get_chat(db: Session, chat_id: int):
-    return (
+    chat = (
         db.query(ChatSession)
         .options(joinedload(ChatSession.messages))
         .filter(ChatSession.id == chat_id)
         .first()
     )
 
+    if chat is not None and _number_default_chat(chat):
+        db.commit()
+        db.refresh(chat)
+
+    return chat
+
+
+def _number_default_chats(db: Session, chats: list[ChatSession]):
+    changed = False
+
+    for chat in chats:
+        if _number_default_chat(chat):
+            changed = True
+
+    if changed:
+        db.commit()
+        for chat in chats:
+            db.refresh(chat)
+
 
 def get_user_chats(db: Session, user_id: int):
-    return (
+    chats = (
         db.query(ChatSession)
         .options(joinedload(ChatSession.messages))
         .filter(ChatSession.user_id == user_id)
@@ -29,14 +65,22 @@ def get_user_chats(db: Session, user_id: int):
         .all()
     )
 
+    _number_default_chats(db, chats)
+
+    return chats
+
 
 def get_all_chats(db: Session):
-    return (
+    chats = (
         db.query(ChatSession)
         .options(joinedload(ChatSession.messages))
         .order_by(ChatSession.created_at.desc())
         .all()
     )
+
+    _number_default_chats(db, chats)
+
+    return chats
 
 
 def get_user_chat_count(db: Session, user_id: int):

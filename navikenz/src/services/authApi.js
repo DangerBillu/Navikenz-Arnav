@@ -1,4 +1,4 @@
-const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8003'
+export const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8003'
 
 function formatApiError(payload, fallback) {
   const { detail } = payload
@@ -36,4 +36,28 @@ export async function signUpUser(user) {
   }
 
   return payload
+}
+
+export async function signInUser(credentials) {
+  let response
+
+  try {
+    response = await fetch(`${apiUrl}/signin`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(credentials),
+    })
+  } catch {
+    throw new Error('backend not running on port 8003')
+  }
+
+  const payload = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(formatApiError(payload, 'Could not sign in.'))
+  }
+
+  return payload.user
 }

@@ -54,13 +54,13 @@ function SignUpPage({ onSignInClick }) {
   return (
     <AuthShell subtitle="Create your account to get started." title="Sign up">
       <form
-        className="grid gap-5 rounded-lg border border-slate-800 bg-slate-900 p-6 shadow-2xl shadow-black/30"
+        className="grid gap-5 rounded-lg border border-white/20 bg-black p-6 shadow-2xl shadow-white/10"
         noValidate
         onSubmit={handleSubmit}
       >
         <div>
           <h2 className="text-2xl font-black text-white">Welcome</h2>
-          <p className="mt-1 text-sm text-slate-400">Create your credentials.</p>
+          <p className="mt-1 text-sm text-white/60">Create your credentials.</p>
         </div>
 
         <TextInput
