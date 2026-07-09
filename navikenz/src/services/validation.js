@@ -37,13 +37,13 @@ function validateSignUpFields(values) {
 
   if (!email) {
     errors.email = 'Email is required.'
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  } else if (!/^[a-zA-Z0-9.]+@[a-zA-Z]+\.[a-zA-Z]+$/.test(email)) {
     errors.email = 'Enter a valid email address.'
   }
 
   if (!phone) {
     errors.phone = 'Phone number is required.'
-  } else if (!/^\+?[0-9\s-]{7,15}$/.test(phone)) {
+  } else if (!/^\+?[0-9\s]{7,15}$/.test(phone)) {
     errors.phone = 'Enter a valid phone number.'
   }
 
@@ -84,7 +84,7 @@ export function runSignInValidation(values) {
   return {
     errors: {},
     isValid: true,
-    message: 'Validation passed. Sign-in logic ran successfully.',
+    message: 'Sign in successful.',
     user: {
       email: credentials.email,
     },
@@ -113,7 +113,7 @@ export function runSignUpValidation(values) {
   return {
     errors: {},
     isValid: true,
-    message: '',
+    message: 'Sign up successful.',
     user: registration,
   }
 }

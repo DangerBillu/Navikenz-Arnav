@@ -1,8 +1,6 @@
 const variants = {
-  primary: 'bg-white text-black hover:bg-sky-300',
-  secondary: 'border border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50',
-  nav: 'border border-transparent bg-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-50',
-  navActive: 'border border-sky-200 bg-sky-50 text-sky-700',
+  primary: 'bg-white text-black',
+  secondary: 'bg-white text-black',
 }
 
 function Button({ children, className = '', type = 'button', variant = 'primary', ...props }) {
