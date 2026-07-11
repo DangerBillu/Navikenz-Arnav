@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func
 from backend.models.chat_session import ChatSession
 from backend.models.message import Message
 
@@ -9,14 +10,19 @@ def _is_default_chat_title(title: str):
 
 def _number_default_chat(chat: ChatSession):
     if _is_default_chat_title(chat.title):
-        chat.title = f"Chat {chat.id}"
+        chat.title = f"Chat {chat.user_chat_number}"
         return True
 
     return False
 
 
 def create_chat(db: Session, user_id: int, title: str):
-    chat = ChatSession(user_id=user_id, title=title)
+    # Calculate the next chat number for this user
+    max_chat_number = db.query(func.max(ChatSession.user_chat_number)).filter(
+        ChatSession.user_id == user_id
+    ).scalar() or 0
+    
+    chat = ChatSession(user_id=user_id, user_chat_number=max_chat_number + 1, title=title)
     db.add(chat)
     db.commit()
     db.refresh(chat)

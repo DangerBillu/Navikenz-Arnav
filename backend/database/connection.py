@@ -59,11 +59,43 @@ def ensure_chat_schema():
     if "chat_sessions" not in table_names:
         return
 
+    columns = {column["name"] for column in inspector.get_columns("chat_sessions")}
     with engine.begin() as connection:
         if not _has_index(inspector, "chat_sessions", "ix_chat_sessions_user_created"):
             connection.execute(
                 text("CREATE INDEX IF NOT EXISTS ix_chat_sessions_user_created ON chat_sessions (user_id, created_at)")
             )
+
+        # Add user_chat_number column if it doesn't exist
+        if "user_chat_number" not in columns:
+            if engine.dialect.name == "sqlite":
+                # For SQLite, calculate the chat number for each user based on creation order
+                connection.execute(text("""
+                    ALTER TABLE chat_sessions ADD COLUMN user_chat_number INTEGER DEFAULT 1
+                """))
+                # Update existing chats with their per-user sequence number
+                connection.execute(text("""
+                    WITH numbered_chats AS (
+                        SELECT id, user_id, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at) as chat_num
+                        FROM chat_sessions
+                    )
+                    UPDATE chat_sessions SET user_chat_number = (
+                        SELECT chat_num FROM numbered_chats WHERE numbered_chats.id = chat_sessions.id
+                    )
+                """))
+            else:
+                # For PostgreSQL
+                connection.execute(text("""
+                    ALTER TABLE chat_sessions ADD COLUMN user_chat_number INTEGER DEFAULT 1
+                """))
+                connection.execute(text("""
+                    WITH numbered_chats AS (
+                        SELECT id, user_id, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at) as chat_num
+                        FROM chat_sessions
+                    )
+                    UPDATE chat_sessions SET user_chat_number = numbered_chats.chat_num
+                    FROM numbered_chats WHERE numbered_chats.id = chat_sessions.id
+                """))
 
         if engine.dialect.name == "postgresql" and "users" in table_names:
             connection.execute(
