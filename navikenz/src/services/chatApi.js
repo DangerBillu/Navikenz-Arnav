@@ -1,4 +1,4 @@
-const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+﻿const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 async function parseResponse(response, fallback) {
   const payload = await response.json().catch(() => ({}))
@@ -14,11 +14,11 @@ async function parseResponse(response, fallback) {
 
 async function apiFetch(path, options, fallback) {
   try {
-    const response = await fetch(`${apiUrl}${path}`, options)
+    const response = await fetch(${ apiUrl }, options)
     return parseResponse(response, fallback)
   } catch (error) {
     if (error instanceof TypeError) {
-      throw new Error(`Could not reach the backend at ${apiUrl}. Start the FastAPI server and try again.`)
+      throw new Error(Could not reach the backend at . Start the FastAPI server and try again.)
     }
 
     throw error
@@ -28,20 +28,8 @@ async function apiFetch(path, options, fallback) {
 function authHeaders(accessToken, includeJson = false) {
   return {
     ...(includeJson ? { 'Content-Type': 'application/json' } : {}),
-    Authorization: `Bearer ${accessToken}`,
+    Authorization: Bearer ,
   }
-}
-
-export async function syncCurrentUser(accessToken, profile) {
-  return apiFetch(
-    '/me',
-    {
-      method: 'POST',
-      headers: authHeaders(accessToken, true),
-      body: JSON.stringify(profile),
-    },
-    'Could not sync your account.',
-  )
 }
 
 export async function fetchUserChats(accessToken) {
@@ -62,7 +50,7 @@ export async function createChat(accessToken, title = 'New chat') {
 
 export async function sendChatMessage(accessToken, chatId, content) {
   return apiFetch(
-    `/chats/${chatId}/messages`,
+    /chats//messages,
     {
       method: 'POST',
       headers: authHeaders(accessToken, true),
@@ -74,7 +62,7 @@ export async function sendChatMessage(accessToken, chatId, content) {
 
 export async function deleteChat(accessToken, chatId) {
   return apiFetch(
-    `/chats/${chatId}`,
+    /chats/,
     {
       method: 'DELETE',
       headers: authHeaders(accessToken),

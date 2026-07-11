@@ -99,13 +99,5 @@ def get_or_create_auth0_user(db: Session, subject: str, claims: dict) -> User:
     return user
 
 
-def sync_auth0_user_profile(db: Session, subject: str, claims: dict, profile: dict) -> User:
-    user = get_or_create_auth0_user(db, subject, claims)
-    if _apply_profile(db, user, profile):
-        db.commit()
-        db.refresh(user)
-    return user
-
-
 def get_user(db: Session, user_id: int):
     return db.query(User).filter(User.id == user_id).first()

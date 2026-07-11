@@ -2,7 +2,6 @@ import DashboardPage from "./pages/DashboardPage";
 import SignInPage from "./pages/SignInPage";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useCallback } from "react";
-import { auth0Config } from "./auth0Config";
 
 function App() {
     const {
@@ -13,22 +12,12 @@ function App() {
         logout,
         error,
         getAccessTokenSilently,
-        getIdTokenClaims,
     } = useAuth0();
 
-    const getApiAccessToken = useCallback(async () => {
-        const claims = await getIdTokenClaims();
-        if (claims?.__raw) {
-            return claims.__raw;
-        }
-
-        return getAccessTokenSilently({
-            authorizationParams: {
-                audience: auth0Config.audience,
-                scope: "openid profile email",
-            },
-        });
-    }, [getAccessTokenSilently, getIdTokenClaims]);
+    const getApiAccessToken = useCallback(
+        () => getAccessTokenSilently(),
+        [getAccessTokenSilently],
+    );
 
     if (isLoading) {
         return <div>Loading...</div>;

@@ -28,7 +28,6 @@ function DashboardPage({ getAccessToken, greetingName, onSignOut, user }) {
   )
 
   const messages = activeChat?.messages || []
-  const dashboardError = error
 
   useEffect(() => {
     let ignore = false
@@ -189,7 +188,7 @@ function DashboardPage({ getAccessToken, greetingName, onSignOut, user }) {
                   type="button"
                 >
                   <span className="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-bold">
-                    {"New Chat: "+chat.id}
+                    {chat.title || `Chat ${chat.id}`}
                   </span>
                 </button>
                 <button
@@ -257,9 +256,9 @@ function DashboardPage({ getAccessToken, greetingName, onSignOut, user }) {
               </div>
             )}
 
-            {dashboardError && (
+            {error && (
               <p className="rounded-lg border border-amber-500 bg-amber-50 px-3 py-2.5 text-sm font-bold text-amber-800">
-                {dashboardError}
+                {error}
               </p>
             )}
 
@@ -277,7 +276,7 @@ function DashboardPage({ getAccessToken, greetingName, onSignOut, user }) {
               />
               <div className="flex items-center justify-between">
                 <span className="min-w-0 max-w-[55%] overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-bold text-white/60 md:max-w-none">
-                  {'New chat'}
+                  {activeChat?.title || 'New chat'}
                 </span>
                 <button
                   className="min-h-9 rounded-lg border border-white bg-white px-3.5 text-sm font-extrabold text-black disabled:cursor-not-allowed disabled:opacity-[0.65]"
