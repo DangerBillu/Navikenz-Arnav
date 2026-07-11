@@ -2,6 +2,7 @@ import { useState } from 'react'
 import DashboardPage from './pages/DashboardPage'
 import SignInPage from './pages/SignInPage'
 import SignUpPage from './pages/SignUpPage'
+import { Auth0Provider } from "@auth0/auth0-react";
 
 function App() {
   const [authView, setAuthView] = useState('signin')
