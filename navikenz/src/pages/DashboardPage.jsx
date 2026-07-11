@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createChat, deleteChat, fetchUserChats, sendChatMessage } from '../services/chatApi'
 
-function DashboardPage({ greetingName, onSignOut, user }) {
+function DashboardPage({ getAccessToken, greetingName, onSignOut, user }) {
   const [prompt, setPrompt] = useState('')
   const [chats, setChats] = useState([])
   const [activeChatId, setActiveChatId] = useState(null)
@@ -28,13 +28,9 @@ function DashboardPage({ greetingName, onSignOut, user }) {
   )
 
   const messages = activeChat?.messages || []
-  const dashboardError = error || (!user?.id ? 'Sign in again to load your chats from the backend.' : '')
+  const dashboardError = error
 
   useEffect(() => {
-    if (!user?.id) {
-      return
-    }
-
     let ignore = false
 
     async function loadChats() {
@@ -42,7 +38,8 @@ function DashboardPage({ greetingName, onSignOut, user }) {
       setError('')
 
       try {
-        const loadedChats = await fetchUserChats(user.id)
+        const accessToken = await getAccessToken()
+        const loadedChats = await fetchUserChats(accessToken)
 
         if (ignore) {
           return
@@ -72,18 +69,13 @@ function DashboardPage({ greetingName, onSignOut, user }) {
     return () => {
       ignore = true
     }
-  }, [user])
+  }, [getAccessToken])
 
   async function handleNewChat() {
-    if (!user?.id) {
-      setError('Sign in again to create a chat.')
-      return
-    }
-
     setError('')
 
     try {
-      const chat = await createChat(user.id)
+      const chat = await createChat(await getAccessToken())
       setChats((current) => [chat, ...current])
       setActiveChatId(chat.id)
       setPrompt('')
@@ -97,7 +89,7 @@ function DashboardPage({ greetingName, onSignOut, user }) {
     setError('')
 
     try {
-      await deleteChat(chatId)
+      await deleteChat(await getAccessToken(), chatId)
       const nextChats = chats.filter((chat) => chat.id !== chatId)
 
       setChats(nextChats)
@@ -121,11 +113,6 @@ function DashboardPage({ greetingName, onSignOut, user }) {
       return
     }
 
-    if (!user?.id) {
-      setError('Sign in again to send a message.')
-      return
-    }
-
     setIsSending(true)
     setError('')
 
@@ -134,13 +121,13 @@ function DashboardPage({ greetingName, onSignOut, user }) {
 
       if (!chatId) {
         const title = nextPrompt.slice(0, 60)
-        const chat = await createChat(user.id, title)
+        const chat = await createChat(await getAccessToken(), title)
         chatId = chat.id
         setChats((current) => [chat, ...current])
         setActiveChatId(chat.id)
       }
 
-      const message = await sendChatMessage(chatId, nextPrompt)
+      const message = await sendChatMessage(await getAccessToken(), chatId, nextPrompt)
       setChats((current) => (
         current.map((chat) => (
           chat.id === chatId

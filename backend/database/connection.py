@@ -30,11 +30,28 @@ def ensure_user_schema():
         return
 
     columns = {column["name"] for column in inspector.get_columns("users")}
-    if "password_hash" in columns:
-        return
-
     with engine.begin() as connection:
-        connection.execute(text("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)"))
+        if "name" not in columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN name VARCHAR(100)"))
+            connection.execute(text("UPDATE users SET name = COALESCE(name, 'Navikenz user')"))
+        if "email" not in columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN email VARCHAR(100)"))
+            connection.execute(text("UPDATE users SET email = COALESCE(email, 'missing-email@auth0.local')"))
+        if "phone" not in columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN phone VARCHAR(20)"))
+        if "age" not in columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN age INTEGER"))
+        if "password_hash" not in columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)"))
+        if "auth0_subject" not in columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN auth0_subject VARCHAR(255)"))
+        if not _has_index(inspector, "users", "ix_users_auth0_subject"):
+            connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_auth0_subject ON users (auth0_subject)"))
+
+        if engine.dialect.name == "postgresql":
+            for column in ("phone", "age", "password_hash", "auth0_subject"):
+                if column in columns:
+                    connection.execute(text(f"ALTER TABLE users ALTER COLUMN {column} DROP NOT NULL"))
 
 def ensure_chat_schema():
     inspector = inspect(engine)

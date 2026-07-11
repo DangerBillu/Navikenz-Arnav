@@ -1,25 +1,19 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-class UserCreate(BaseModel):
-    name: str
-    email: EmailStr
-    phone: str
-    age: int
-    password: str = Field(min_length=6)
 
-class UserSignIn(BaseModel):
-    email: EmailStr
-    password: str
+class UserProfileSyncRequest(BaseModel):
+    name: str | None = Field(default=None, max_length=100)
+    email: EmailStr | None = None
+    phone: str | None = Field(default=None, max_length=20)
+    age: int | None = Field(default=None, ge=0, le=150)
 
-class ForgotPasswordRequest(BaseModel):
-    email: EmailStr
-    new_password: str = Field(min_length=6)
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    auth0_subject: str | None
     name: str
-    email: EmailStr
-    phone: str
-    age: int
+    email: str
+    phone: str | None
+    age: int | None

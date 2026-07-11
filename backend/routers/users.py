@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from backend.database.connection import check_database_connection, get_db
-from backend.schemas.user import UserResponse
-from backend.services import user_services
-from backend.services import chat_services
+from backend.crud import user_crud
+from backend.schemas.user import UserProfileSyncRequest, UserResponse
+from backend.security import get_current_user, get_token_claims
 
 router = APIRouter(tags=["users"])
 
@@ -22,20 +22,24 @@ def health():
         "database": "connected",
     }
 
-@router.get("/dashboard/{user_id}")
-def dashboard(user_id: int, db: Session = Depends(get_db)):
-    user = user_services.GetUser(db, user_id)
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    stats = chat_services.GetDashboardStats(db, user_id)
+@router.get("/me", response_model=UserResponse)
+def current_user(user=Depends(get_current_user)):
+    return user
 
-    return {
-        "message": f"Welcome back, {user.name}",
-        "user": UserResponse.model_validate(user),
-        "stats": stats,
-    }
 
-@router.get("/getusers")
-def get_users(db: Session = Depends(get_db)):
-    users = user_services.GetAllUsers(db)
-    return {"users": [UserResponse.model_validate(user) for user in users]}
+@router.post("/me", response_model=UserResponse)
+def sync_current_user(
+    payload: UserProfileSyncRequest,
+    claims: dict = Depends(get_token_claims),
+    db: Session = Depends(get_db),
+):
+    subject = claims.get("sub")
+    if not subject:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid access token")
+
+    return user_crud.sync_auth0_user_profile(
+        db,
+        subject,
+        claims,
+        payload.model_dump(exclude_none=True),
+    )

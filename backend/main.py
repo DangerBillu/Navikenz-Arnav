@@ -19,7 +19,7 @@ from backend.database.connection import (
 from backend.models.chat_session import ChatSession
 from backend.models.message import Message
 from backend.models.user import User
-from backend.routers import auth, chat, users
+from backend.routers import chat, users
 
 
 @asynccontextmanager
@@ -44,7 +44,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(chat.router)
 

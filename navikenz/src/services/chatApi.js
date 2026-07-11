@@ -1,4 +1,4 @@
-import { apiUrl } from './authApi'
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 async function parseResponse(response, fallback) {
   const payload = await response.json().catch(() => ({}))
@@ -12,42 +12,73 @@ async function parseResponse(response, fallback) {
   return payload
 }
 
-export async function fetchUserChats(userId) {
-  const response = await fetch(`${apiUrl}/chats/user/${userId}`)
-  return parseResponse(response, 'Could not load chats.')
+async function apiFetch(path, options, fallback) {
+  try {
+    const response = await fetch(`${apiUrl}${path}`, options)
+    return parseResponse(response, fallback)
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error(`Could not reach the backend at ${apiUrl}. Start the FastAPI server and try again.`)
+    }
+
+    throw error
+  }
 }
 
-export async function createChat(userId, title = 'New chat') {
-  const response = await fetch(`${apiUrl}/chats`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+function authHeaders(accessToken, includeJson = false) {
+  return {
+    ...(includeJson ? { 'Content-Type': 'application/json' } : {}),
+    Authorization: `Bearer ${accessToken}`,
+  }
+}
+
+export async function syncCurrentUser(accessToken, profile) {
+  return apiFetch(
+    '/me',
+    {
+      method: 'POST',
+      headers: authHeaders(accessToken, true),
+      body: JSON.stringify(profile),
     },
-    body: JSON.stringify({
-      user_id: userId,
-      title,
-    }),
-  })
-
-  return parseResponse(response, 'Could not create chat.')
+    'Could not sync your account.',
+  )
 }
 
-export async function sendChatMessage(chatId, content) {
-  const response = await fetch(`${apiUrl}/chats/${chatId}/messages`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+export async function fetchUserChats(accessToken) {
+  return apiFetch('/chats', { headers: authHeaders(accessToken) }, 'Could not load chats.')
+}
+
+export async function createChat(accessToken, title = 'New chat') {
+  return apiFetch(
+    '/chats',
+    {
+      method: 'POST',
+      headers: authHeaders(accessToken, true),
+      body: JSON.stringify({ title }),
     },
-    body: JSON.stringify({ content }),
-  })
-
-  return parseResponse(response, 'Could not send message.')
+    'Could not create chat.',
+  )
 }
 
-export async function deleteChat(chatId) {
-  const response = await fetch(`${apiUrl}/chats/${chatId}`, {
-    method: 'DELETE',
-  })
+export async function sendChatMessage(accessToken, chatId, content) {
+  return apiFetch(
+    `/chats/${chatId}/messages`,
+    {
+      method: 'POST',
+      headers: authHeaders(accessToken, true),
+      body: JSON.stringify({ content }),
+    },
+    'Could not send message.',
+  )
+}
 
-  return parseResponse(response, 'Could not delete chat.')
+export async function deleteChat(accessToken, chatId) {
+  return apiFetch(
+    `/chats/${chatId}`,
+    {
+      method: 'DELETE',
+      headers: authHeaders(accessToken),
+    },
+    'Could not delete chat.',
+  )
 }

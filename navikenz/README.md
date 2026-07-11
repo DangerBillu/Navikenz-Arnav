@@ -1,16 +1,13 @@
-# React + Vite
+# Navikenz
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Auth0 handles sign-in and sign-up. The FastAPI service verifies Auth0 access tokens before serving chat data.
 
-Currently, two official plugins are available:
+## Configuration
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Copy the values in the repository's `.env.example` to `.env`. In Auth0, create an **API** and use its Identifier for both `VITE_AUTH0_AUDIENCE` and `AUTH0_AUDIENCE`. Add `http://localhost:5173` to the Auth0 application's Allowed Callback URLs, Allowed Logout URLs, and Allowed Web Origins.
 
-## React Compiler
+Start the API on port 8000, then start the frontend:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm run dev
+```

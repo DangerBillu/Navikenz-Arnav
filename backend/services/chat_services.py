@@ -9,6 +9,10 @@ def CreateChat(db: Session, user_id: int, title: str):
 def GetChat(db: Session, chat_id: int):
     return chat_crud.get_chat(db, chat_id)
 
+def GetUserChat(db: Session, chat_id: int, user_id: int):
+    chat = chat_crud.get_chat(db, chat_id)
+    return chat if chat is not None and chat.user_id == user_id else None
+
 def GetUserChats(db: Session, user_id: int):
     return chat_crud.get_user_chats(db, user_id)
 
@@ -24,14 +28,16 @@ def GetDashboardStats(db: Session, user_id: int):
         "total_messages": chat_crud.get_user_message_count(db, user_id),
     }
 
-def SendUserMessage(db: Session, chat_id: int, content: str):
-    chat = chat_crud.get_chat(db, chat_id)
+def SendUserMessage(db: Session, chat_id: int, user_id: int, content: str):
+    chat = GetUserChat(db, chat_id, user_id)
     if chat is None:
         return None
 
     return chat_crud.create_message(db, chat_id, content, BuildAssistantReply())
 
-def DeleteChat(db: Session, chat_id: int):
+def DeleteChat(db: Session, chat_id: int, user_id: int):
+    if GetUserChat(db, chat_id, user_id) is None:
+        return False
     return chat_crud.delete_chat(db, chat_id)
 
 def BuildAssistantReply():
