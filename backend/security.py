@@ -1,11 +1,9 @@
 ﻿import json
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
-
 from backend.config import settings
 from backend.crud import user_crud
 from backend.database.connection import get_db

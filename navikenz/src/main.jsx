@@ -20,7 +20,7 @@ const application = isAuth0Configured ? (
   </StrictMode>
  ) : (
   <main className="grid min-h-svh place-items-center bg-black p-6 text-center text-white">
-    <p>Set VITE_AUTH0_DOMAIN and VITE_AUTH0_CLIENT_ID in .env, then restart Vite.</p>
+    <p>environment variables not configured</p>
   </main>
 )
 
