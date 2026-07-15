@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 from backend.config import settings
@@ -97,6 +98,20 @@ def ensure_chat_schema():
                     FROM numbered_chats WHERE numbered_chats.id = chat_sessions.id
                 """))
 
+        if "session_id" not in columns:
+            connection.execute(text("ALTER TABLE chat_sessions ADD COLUMN session_id VARCHAR(36)"))
+            rows = connection.execute(
+                text("SELECT id FROM chat_sessions WHERE session_id IS NULL OR session_id = ''")
+            ).fetchall()
+            for row in rows:
+                connection.execute(
+                    text("UPDATE chat_sessions SET session_id = :session_id WHERE id = :id"),
+                    {"session_id": str(uuid.uuid4()), "id": row[0]},
+                )
+            connection.execute(
+                text("CREATE UNIQUE INDEX IF NOT EXISTS ix_chat_sessions_session_id ON chat_sessions (session_id)")
+            )
+
         if engine.dialect.name == "postgresql" and "users" in table_names:
             connection.execute(
                 text(
@@ -132,7 +147,7 @@ def ensure_message_schema():
             text(
                 "UPDATE messages "
                 f"SET sent_message = COALESCE(sent_message, {sent_fallback}, ''), "
-                "received_message = COALESCE(received_message, 'hi - under development') "
+                "received_message = COALESCE(received_message, '') "
                 "WHERE sent_message IS NULL OR received_message IS NULL"
             )
         )

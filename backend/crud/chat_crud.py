@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from backend.models.chat_session import ChatSession
@@ -22,7 +23,12 @@ def create_chat(db: Session, user_id: int, title: str):
         ChatSession.user_id == user_id
     ).scalar() or 0
     
-    chat = ChatSession(user_id=user_id, user_chat_number=max_chat_number + 1, title=title)
+    chat = ChatSession(
+        session_id=str(uuid.uuid4()),
+        user_id=user_id,
+        user_chat_number=max_chat_number + 1,
+        title=title,
+    )
     db.add(chat)
     db.commit()
     db.refresh(chat)
@@ -34,19 +40,31 @@ def create_chat(db: Session, user_id: int, title: str):
     return chat
 
 
-def get_chat(db: Session, chat_id: int):
-    chat = (
-        db.query(ChatSession)
-        .options(joinedload(ChatSession.messages))
-        .filter(ChatSession.id == chat_id)
-        .first()
-    )
+def _get_chat_query(db: Session):
+    return db.query(ChatSession).options(joinedload(ChatSession.messages))
+
+
+def get_chat(db: Session, chat_identifier):
+    query = _get_chat_query(db)
+
+    if isinstance(chat_identifier, int) or (
+        isinstance(chat_identifier, str) and chat_identifier.isdigit()
+    ):
+        chat_identifier = int(chat_identifier)
+        chat = query.filter(ChatSession.id == chat_identifier).first()
+    else:
+        chat = query.filter(ChatSession.session_id == str(chat_identifier)).first()
 
     if chat is not None and _number_default_chat(chat):
         db.commit()
         db.refresh(chat)
 
     return chat
+
+
+def get_user_chat(db: Session, chat_identifier, user_id: int):
+    chat = get_chat(db, chat_identifier)
+    return chat if chat is not None and chat.user_id == user_id else None
 
 
 def _number_default_chats(db: Session, chats: list[ChatSession]):

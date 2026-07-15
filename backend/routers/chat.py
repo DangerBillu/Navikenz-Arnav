@@ -25,7 +25,7 @@ def get_user_chat_dashboard(db: Session = Depends(get_db), user=Depends(get_curr
 
 
 @router.get("/{chat_id}", response_model=ChatDetailResponse)
-def get_chat(chat_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
+def get_chat(chat_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)):
     chat = chat_services.GetUserChat(db, chat_id, user.id)
     if chat is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found")
@@ -33,7 +33,7 @@ def get_chat(chat_id: int, db: Session = Depends(get_db), user=Depends(get_curre
 
 
 @router.delete("/{chat_id}")
-def delete_chat(chat_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
+def delete_chat(chat_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)):
     deleted = chat_services.DeleteChat(db, chat_id, user.id)
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found")
@@ -41,7 +41,7 @@ def delete_chat(chat_id: int, db: Session = Depends(get_db), user=Depends(get_cu
 
 
 @router.post("/{chat_id}/messages", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
-def send_message(chat_id: int, payload: SendMessageRequest, db: Session = Depends(get_db), user=Depends(get_current_user)):
+def send_message(chat_id: str, payload: SendMessageRequest, db: Session = Depends(get_db), user=Depends(get_current_user)):
     message = chat_services.SendUserMessage(db, chat_id, user.id, payload.content)
     if message is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found")

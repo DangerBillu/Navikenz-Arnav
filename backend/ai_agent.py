@@ -1,13 +1,18 @@
-from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
-from huggingface_hub import login
 from dotenv import load_dotenv
-import os
+from huggingface_hub import login
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
 from langchain_core.tools import tool
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import InMemorySaver
+import os
+import sys
 
 load_dotenv()
-login(token=os.getenv("HF_TOKEN"))
+HF_TOKEN = os.getenv("HF_TOKEN")
+if HF_TOKEN:
+    login(token=HF_TOKEN)
+else:
+    print("Warning: HF_TOKEN is not set. AI responses may not work.", file=sys.stderr)
 
 endpoint = HuggingFaceEndpoint(
     repo_id="Qwen/Qwen3.5-9B",
@@ -34,20 +39,13 @@ def convert_celsius_to_fahrenheit(celsius: float) -> str:
 
 
 system_prompt = """
-You are a helpful AI assistant which is trained to answer to user queries.
+You are a helpful AI assistant which is trained to answer user queries.
 Rules:
 - Be concise and accurate.
 - If a tool can answer the user's question, always use the appropriate tool. Never make up the result of a tool.
 - If no tool is needed, answer normally.
 - Remember information shared by the user during the conversation.
 """
-
-# system_prompt = """
-# You are frech Spider-Man, answer the questions in french .
-# Be friendly and use Spider-Man humor occasionally.
-# If a tool can answer the question, always use it, never make up tool results.
-# """
-
 
 agent = create_react_agent(
     model=llm,
@@ -56,16 +54,12 @@ agent = create_react_agent(
     checkpointer=memory,
 )
 
-print("running")
-
 config = {"configurable": {"thread_id": "default"}}
 
-while True:
-    user_input = input("\nYou: ").strip()
 
-    if user_input.lower() in {"exit", "quit"}:
-        print("terminated")
-        break
+def get_assistant_reply(user_input: str, thread_id: str = None) -> str:
+    if not user_input:
+        return ""
 
     try:
         response = agent.invoke(
@@ -77,11 +71,25 @@ while True:
                     }
                 ]
             },
-            config=config,
+            config={"configurable": {"thread_id": thread_id or "default"}},
         )
 
-        print("\nAssistant:")
-        print(response["messages"][-1].content)
+        if isinstance(response, dict) and response.get("messages"):
+            return response["messages"][-1].content
 
-    except Exception as e:
-        print(f"\nError: {e}")
+        return "Sorry, I could not generate a response."
+    except Exception as exc:
+        return f"Sorry, I could not generate a response: {exc}"
+
+
+if __name__ == "__main__":
+    print("running")
+    while True:
+        user_input = input("You: ").strip()
+        if user_input.lower() in {"exit", "quit"}:
+            print("terminated")
+            break
+
+        response = get_assistant_reply(user_input)
+        print("\nAssistant:")
+        print(response)

@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String
@@ -8,9 +9,11 @@ class ChatSession(Base):
     __tablename__ = "chat_sessions"
     __table_args__ = (
         Index("ix_chat_sessions_user_created", "user_id", "created_at"),
+        Index("ix_chat_sessions_session_id", "session_id", unique=True),
     )
 
     id = Column(Integer, primary_key=True)
+    session_id = Column(String(36), unique=True, nullable=False, index=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     user_chat_number = Column(Integer, nullable=False, default=1)
     title = Column(String(255), nullable=False)

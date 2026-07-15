@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from backend.ai_agent import get_assistant_reply
 from backend.crud import chat_crud, user_crud
 
 def CreateChat(db: Session, user_id: int, title: str):
@@ -33,12 +34,13 @@ def SendUserMessage(db: Session, chat_id: int, user_id: int, content: str):
     if chat is None:
         return None
 
-    return chat_crud.create_message(db, chat_id, content, BuildAssistantReply())
+    assistant_reply = get_assistant_reply(content, chat.session_id)
+    if not assistant_reply:
+        assistant_reply = "Sorry, I could not generate a response right now."
+
+    return chat_crud.create_message(db, chat.id, content, assistant_reply)
 
 def DeleteChat(db: Session, chat_id: int, user_id: int):
     if GetUserChat(db, chat_id, user_id) is None:
         return False
     return chat_crud.delete_chat(db, chat_id)
-
-def BuildAssistantReply():
-    return "hi - under development"
