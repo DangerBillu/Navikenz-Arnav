@@ -4,6 +4,25 @@ from sqlalchemy.orm import Session
 from backend.models.user import User
 
 
+def get_or_create_guest_user(db: Session, anonymous_user_id: str) -> User:
+    user = db.query(User).filter(User.auth0_subject == f"guest:{anonymous_user_id}").first()
+    if user is not None:
+        return user
+
+    user = User(
+        auth0_subject=f"guest:{anonymous_user_id}",
+        name="Guest user",
+        email=f"guest-{anonymous_user_id[:24]}@guest.local",
+        password_hash=None,
+        is_guest=True,
+        guest_chat_count=0,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
 def _fallback_email(subject: str) -> str:
     digest = sha256(subject.encode("utf-8")).hexdigest()[:24]
     return f"auth0-{digest}@auth0.local"
@@ -79,6 +98,7 @@ def get_or_create_auth0_user(db: Session, subject: str, claims: dict) -> User:
     user = db.query(User).filter(User.email == email).first()
     if user is not None:
         user.auth0_subject = subject
+        user.is_guest = False
         _apply_profile(db, user, claims)
         db.commit()
         db.refresh(user)
@@ -92,6 +112,8 @@ def get_or_create_auth0_user(db: Session, subject: str, claims: dict) -> User:
         phone=_clean_text(_claim_value(claims, "phone") or _claim_value(claims, "phone_number"), 20),
         age=_clean_age(_claim_value(claims, "age")),
         password_hash=None,
+        is_guest=False,
+        guest_chat_count=0,
     )
     db.add(user)
     db.commit()

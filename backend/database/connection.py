@@ -31,6 +31,7 @@ def ensure_user_schema():
         return
 
     columns = {column["name"] for column in inspector.get_columns("users")}
+    true_value = "TRUE" if engine.dialect.name == "postgresql" else "1"
     with engine.begin() as connection:
         if "name" not in columns:
             connection.execute(text("ALTER TABLE users ADD COLUMN name VARCHAR(100)"))
@@ -46,6 +47,12 @@ def ensure_user_schema():
             connection.execute(text("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)"))
         if "auth0_subject" not in columns:
             connection.execute(text("ALTER TABLE users ADD COLUMN auth0_subject VARCHAR(255)"))
+        if "is_guest" not in columns:
+            connection.execute(text(f"ALTER TABLE users ADD COLUMN is_guest BOOLEAN DEFAULT {true_value}"))
+            connection.execute(text(f"UPDATE users SET is_guest = COALESCE(is_guest, {true_value})"))
+        if "guest_chat_count" not in columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN guest_chat_count INTEGER DEFAULT 0"))
+            connection.execute(text("UPDATE users SET guest_chat_count = COALESCE(guest_chat_count, 0)"))
         if not _has_index(inspector, "users", "ix_users_auth0_subject"):
             connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_auth0_subject ON users (auth0_subject)"))
 
@@ -187,6 +194,34 @@ def check_database_connection():
     with engine.connect() as connection:
         connection.execute(text("SELECT 1"))
     return True
+
+def reset_guest_limits():
+    inspector = inspect(engine)
+    table_names = inspector.get_table_names()
+    if "users" not in table_names:
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("users")}
+    if {"is_guest", "guest_chat_count"}.issubset(columns):
+        true_value = "TRUE" if engine.dialect.name == "postgresql" else "1"
+        with engine.begin() as connection:
+            if {"chat_sessions", "messages"}.issubset(table_names):
+                connection.execute(
+                    text(
+                        "DELETE FROM messages WHERE chat_session_id IN ("
+                        "SELECT chat_sessions.id FROM chat_sessions "
+                        "JOIN users ON users.id = chat_sessions.user_id "
+                        f"WHERE users.is_guest = {true_value})"
+                    )
+                )
+            if "chat_sessions" in table_names:
+                connection.execute(
+                    text(
+                        "DELETE FROM chat_sessions WHERE user_id IN ("
+                        f"SELECT id FROM users WHERE is_guest = {true_value})"
+                    )
+                )
+            connection.execute(text(f"UPDATE users SET guest_chat_count = 0 WHERE is_guest = {true_value}"))
 
 def get_db():
     db = SessionLocal()

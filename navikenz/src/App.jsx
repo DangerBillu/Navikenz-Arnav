@@ -1,7 +1,7 @@
 import DashboardPage from "./pages/DashboardPage";
 import SignInPage from "./pages/SignInPage";
 import { useAuth0 } from "@auth0/auth0-react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 function App() {
     const {
@@ -13,28 +13,46 @@ function App() {
         error,
         getAccessTokenSilently,
     } = useAuth0();
+    const [isGuestMode, setIsGuestMode] = useState(false);
 
     const getApiAccessToken = useCallback(
-        () => getAccessTokenSilently(),
-        [getAccessTokenSilently],
+        () => isAuthenticated ? getAccessTokenSilently() : null,
+        [getAccessTokenSilently, isAuthenticated],
+    );
+
+    const login = useCallback(
+        () => {
+            setIsGuestMode(false);
+            return loginWithRedirect({ authorizationParams: { scope: "openid profile email" } });
+        },
+        [loginWithRedirect],
+    );
+
+    const signup = useCallback(
+        () => {
+            setIsGuestMode(false);
+            return loginWithRedirect({ authorizationParams: { scope: "openid profile email", screen_hint: "signup" } });
+        },
+        [loginWithRedirect],
     );
 
     if (isLoading) {
         return <div>Loading...</div>;
     }
 
-    if (isAuthenticated) {
+    if (isAuthenticated || isGuestMode) {
         return (
             <DashboardPage
-                greetingName={user.name || user.email?.split("@")[0]}
+                greetingName={user?.name || user?.email?.split("@")[0]}
                 user={user}
+                isAuthenticated={isAuthenticated}
                 getAccessToken={getApiAccessToken}
+                onSignIn={login}
+                onSignUp={signup}
                 onSignOut={() =>
-                    logout({
-                        logoutParams: {
-                            returnTo: window.location.origin,
-                        },
-                    })
+                    isAuthenticated
+                        ? logout({ logoutParams: { returnTo: window.location.origin } })
+                        : setIsGuestMode(false)
                 }
             />
         );
@@ -45,21 +63,9 @@ function App() {
             {error && <p>{error.message}</p>}
 
             <SignInPage
-                onLogin={() =>
-                    loginWithRedirect({
-                        authorizationParams: {
-                            scope: "openid profile email",
-                        },
-                    })
-                }
-                onSignup={() =>
-                    loginWithRedirect({
-                        authorizationParams: {
-                            scope: "openid profile email",
-                            screen_hint: "signup",
-                        },
-                    })
-                }
+                onLogin={login}
+                onSignup={signup}
+                onContinueAsGuest={() => setIsGuestMode(true)}
             />
         </>
     );

@@ -1,12 +1,14 @@
-﻿import json
+import json
+from typing import Annotated
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 from backend.config import settings
 from backend.crud import user_crud
 from backend.database.connection import get_db
+from backend.models.user import User
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -19,16 +21,24 @@ def _unauthorized(message: str = "Invalid or expired access token"):
     )
 
 
+def _create_guest_user(db: Session, anonymous_user_id: str | None) -> User:
+    if not anonymous_user_id:
+        anonymous_user_id = "guest"
+
+    user = user_crud.get_or_create_guest_user(db, anonymous_user_id)
+    return user
+
+
 def get_token_claims(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
-) -> dict:
+) -> dict | None:
     if not settings.AUTH0_DOMAIN:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Auth0 is not configured on the server",
         )
     if credentials is None:
-        _unauthorized("A bearer token is required")
+        return None
 
     try:
         request = Request(
@@ -38,7 +48,7 @@ def get_token_claims(
         with urlopen(request, timeout=5) as response:
             return json.load(response)
     except HTTPError:
-        _unauthorized()
+        return None
     except URLError as error:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -47,9 +57,17 @@ def get_token_claims(
 
 
 def get_current_user(
-    claims: dict = Depends(get_token_claims), db: Session = Depends(get_db)
+    claims: dict | None = Depends(get_token_claims),
+    db: Session = Depends(get_db),
+    anonymous_user_id: Annotated[str | None, Header(alias="X-Anonymous-User-Id")] = None,
 ):
-    subject = claims.get("sub")
-    if not subject:
-        _unauthorized()
-    return user_crud.get_or_create_auth0_user(db, subject, claims)
+    if claims is not None:
+        subject = claims.get("sub")
+        if not subject:
+            _unauthorized()
+        return user_crud.get_or_create_auth0_user(db, subject, claims)
+
+    if anonymous_user_id:
+        return _create_guest_user(db, anonymous_user_id)
+
+    _unauthorized("A bearer token or anonymous user id is required")

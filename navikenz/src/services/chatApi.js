@@ -1,4 +1,5 @@
-﻿const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000"
+const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000"
+const anonymousUserIdKey = "navikenz_anonymous_user_id"
 
 async function parseResponse(response, fallback) {
   const payload = await response.json().catch(() => ({}))
@@ -25,10 +26,19 @@ async function apiFetch(path, options, fallback) {
   }
 }
 
+function getAnonymousUserId() {
+  let anonymousUserId = window.localStorage.getItem(anonymousUserIdKey)
+  if (!anonymousUserId) {
+    anonymousUserId = crypto.randomUUID()
+    window.localStorage.setItem(anonymousUserIdKey, anonymousUserId)
+  }
+  return anonymousUserId
+}
+
 function authHeaders(accessToken, includeJson = false) {
   return {
     ...(includeJson ? { "Content-Type": "application/json" } : {}),
-    Authorization: `Bearer ${accessToken}`,
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : { "X-Anonymous-User-Id": getAnonymousUserId() }),
   }
 }
 
@@ -70,4 +80,3 @@ export async function deleteChat(accessToken, chatId) {
     "Could not delete chat.",
   )
 }
-

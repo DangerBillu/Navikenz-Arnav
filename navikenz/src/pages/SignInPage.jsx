@@ -1,7 +1,7 @@
 import AuthShell from '../components/AuthShell'
 import Button from '../components/Button'
 
-function SignInPage({ onLogin, onSignup }) {
+function SignInPage({ onLogin, onSignup, onContinueAsGuest }) {
 
   return (
     <AuthShell>
@@ -17,6 +17,10 @@ function SignInPage({ onLogin, onSignup }) {
 
         <Button className="min-h-11" onClick={onSignup} type="button" variant="secondary">
           Need an account? Sign up
+        </Button>
+
+        <Button className="min-h-11" onClick={onContinueAsGuest} type="button" variant="secondary">
+          Continue as guest
         </Button>
       </section>
     </AuthShell>

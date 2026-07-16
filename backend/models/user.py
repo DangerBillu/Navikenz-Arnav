@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.orm import relationship
 from backend.database.connection import Base
 
@@ -11,6 +11,8 @@ class User(Base):
     phone = Column(String(20), nullable=True)
     age = Column(Integer, nullable=True)
     password_hash = Column(String(255), nullable=True)
+    is_guest = Column(Boolean, nullable=False, default=True)
+    guest_chat_count = Column(Integer, nullable=False, default=0)
 
     chats = relationship(
         "ChatSession",

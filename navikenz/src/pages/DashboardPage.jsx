@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createChat, deleteChat, fetchUserChats, sendChatMessage } from '../services/chatApi'
+import ChatLimitModal from "../components/ChatLimitModel"
 
-function DashboardPage({ getAccessToken, greetingName, onSignOut, user }) {
+function DashboardPage({ getAccessToken, greetingName, isAuthenticated, onSignIn, onSignOut, user }) {
   const [prompt, setPrompt] = useState('')
   const [chats, setChats] = useState([])
   const [activeChatId, setActiveChatId] = useState(null)
@@ -10,13 +11,15 @@ function DashboardPage({ getAccessToken, greetingName, onSignOut, user }) {
   const [deletingChatId, setDeletingChatId] = useState(null)
   const [error, setError] = useState('')
 
+  const [showLimitModal, setShowLimitModal] = useState(false)
+
   const displayName = useMemo(() => {
     if (greetingName) {
       return greetingName
     }
 
     if (!user?.email) {
-      return 'there'
+      return ''
     }
 
     return user.email.split('@')[0]
@@ -71,14 +74,17 @@ function DashboardPage({ getAccessToken, greetingName, onSignOut, user }) {
   }, [getAccessToken])
 
   async function handleNewChat() {
-    setError('')
+    setError("")
 
     try {
       const chat = await createChat(await getAccessToken())
       setChats((current) => [chat, ...current])
       setActiveChatId(chat.id)
-      setPrompt('')
+      setPrompt("")
     } catch (createError) {
+      if (createError.message.includes("guest limit")) {
+        setShowLimitModal(true)
+      }
       setError(createError.message)
     }
   }
@@ -113,7 +119,7 @@ function DashboardPage({ getAccessToken, greetingName, onSignOut, user }) {
     }
 
     setIsSending(true)
-    setError('')
+    setError("")
 
     try {
       let chatId = activeChatId
@@ -134,8 +140,11 @@ function DashboardPage({ getAccessToken, greetingName, onSignOut, user }) {
             : chat
         ))
       ))
-      setPrompt('')
+      setPrompt("")
     } catch (sendError) {
+      if (sendError.message.includes("guest limit")) {
+        setShowLimitModal(true)
+      }
       setError(sendError.message)
     } finally {
       setIsSending(false)
@@ -154,8 +163,7 @@ function DashboardPage({ getAccessToken, greetingName, onSignOut, user }) {
           </div>
         </div>
 
-        <button
-          className="inline-flex min-h-11 items-center gap-2.5 rounded-lg border border-white/20 bg-black px-3 text-left font-bold text-white hover:bg-white hover:text-black"
+        <button className="inline-flex min-h-11 items-center gap-2.5 rounded-lg border border-white/20 bg-black px-3 text-left font-bold text-white hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-60"
           onClick={handleNewChat}
           type="button"
         >
@@ -207,18 +215,12 @@ function DashboardPage({ getAccessToken, greetingName, onSignOut, user }) {
         </nav>
 
         <div className="grid gap-3 border-t border-white/15 pt-3.5">
-          <div className="grid min-w-0 gap-0.5">
-            <strong className="overflow-hidden text-ellipsis whitespace-nowrap text-sm">{displayName}</strong>
-            <span className="overflow-hidden text-ellipsis whitespace-nowrap text-xs text-white/60">
-              {user?.email}
-            </span>
-          </div>
           <button
             className="min-h-[38px] rounded-lg border border-white/20 bg-black font-extrabold text-white hover:bg-white hover:text-black"
-            onClick={onSignOut}
+            onClick={isAuthenticated ? onSignOut : onSignIn}
             type="button"
           >
-            Sign out
+            {isAuthenticated ? "Sign out" : "Sign in"}
           </button>
         </div>
       </aside>
@@ -238,7 +240,7 @@ function DashboardPage({ getAccessToken, greetingName, onSignOut, user }) {
         <div className="grid min-h-0 place-items-center px-4 py-7 md:px-6 md:py-8">
           <div className="grid w-full max-w-[780px] gap-6">
             <h1 className="m-0 text-center text-[28px] font-extrabold leading-tight text-white md:text-[32px]">
-              How can I help, {displayName}?
+              {displayName ? `How can I help, ${displayName}?` : "How can I help?"}
             </h1>
 
             {messages.length > 0 && (
@@ -256,7 +258,7 @@ function DashboardPage({ getAccessToken, greetingName, onSignOut, user }) {
               </div>
             )}
 
-            {error && (
+            {error && !error.includes("guest limit") && (
               <p className="rounded-lg border border-amber-500 bg-amber-50 px-3 py-2.5 text-sm font-bold text-amber-800">
                 {error}
               </p>
@@ -275,11 +277,8 @@ function DashboardPage({ getAccessToken, greetingName, onSignOut, user }) {
                 value={prompt}
               />
               <div className="flex items-center justify-between">
-                <span className="min-w-0 max-w-[55%] overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-bold text-white/60 md:max-w-none">
-                  {activeChat?.title || 'New chat'}
-                </span>
                 <button
-                  className="min-h-9 rounded-lg border border-white bg-white px-3.5 text-sm font-extrabold text-black disabled:cursor-not-allowed disabled:opacity-[0.65]"
+                  className="ml-auto min-h-9 rounded-lg border border-white bg-white px-3.5 text-sm font-extrabold text-black disabled:cursor-not-allowed disabled:opacity-[0.65]"
                   disabled={isSending}
                   type="submit"
                   aria-label="Send message"
@@ -291,6 +290,11 @@ function DashboardPage({ getAccessToken, greetingName, onSignOut, user }) {
           </div>
         </div>
       </section>
+      <ChatLimitModal
+        isOpen={showLimitModal}
+        onClose={() => setShowLimitModal(false)}
+        onSignIn={onSignIn}
+      />
     </main>
   )
 }
