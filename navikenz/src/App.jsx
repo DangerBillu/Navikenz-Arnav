@@ -1,74 +1,56 @@
-import DashboardPage from "./pages/DashboardPage";
-import SignInPage from "./pages/SignInPage";
-import { useAuth0 } from "@auth0/auth0-react";
-import { useCallback, useState } from "react";
+import DashboardPage from "./pages/DashboardPage"
+import { useAuth0 } from "@auth0/auth0-react"
+import { useCallback } from "react"
 
 function App() {
-    const {
-        isLoading,
-        isAuthenticated,
-        user,
-        loginWithRedirect,
-        logout,
-        error,
-        getAccessTokenSilently,
-    } = useAuth0();
-    const [isGuestMode, setIsGuestMode] = useState(false);
+  const {
+    isLoading,
+    isAuthenticated,
+    user,
+    loginWithRedirect,
+    logout,
+    error,
+    getAccessTokenSilently,
+  } = useAuth0()
 
-    const getApiAccessToken = useCallback(
-        () => isAuthenticated ? getAccessTokenSilently() : null,
-        [getAccessTokenSilently, isAuthenticated],
-    );
-
-    const login = useCallback(
-        () => {
-            setIsGuestMode(false);
-            return loginWithRedirect({ authorizationParams: { scope: "openid profile email" } });
-        },
-        [loginWithRedirect],
-    );
-
-    const signup = useCallback(
-        () => {
-            setIsGuestMode(false);
-            return loginWithRedirect({ authorizationParams: { scope: "openid profile email", screen_hint: "signup" } });
-        },
-        [loginWithRedirect],
-    );
-
-    if (isLoading) {
-        return <div>Loading...</div>;
+  const getApiAccessToken = useCallback(() => {
+    if (!isAuthenticated) {
+      return Promise.resolve(null)
     }
 
-    if (isAuthenticated || isGuestMode) {
-        return (
-            <DashboardPage
-                greetingName={user?.name || user?.email?.split("@")[0]}
-                user={user}
-                isAuthenticated={isAuthenticated}
-                getAccessToken={getApiAccessToken}
-                onSignIn={login}
-                onSignUp={signup}
-                onSignOut={() =>
-                    isAuthenticated
-                        ? logout({ logoutParams: { returnTo: window.location.origin } })
-                        : setIsGuestMode(false)
-                }
-            />
-        );
-    }
+    return getAccessTokenSilently()
+  }, [getAccessTokenSilently, isAuthenticated])
 
-    return (
-        <>
-            {error && <p>{error.message}</p>}
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
 
-            <SignInPage
-                onLogin={login}
-                onSignup={signup}
-                onContinueAsGuest={() => setIsGuestMode(true)}
-            />
-        </>
-    );
+  return (
+    <>
+      {error && <p>{error.message}</p>}
+
+      <DashboardPage
+        greetingName={user?.name || user?.email?.split("@")[0]}
+        user={user}
+        isAuthenticated={isAuthenticated}
+        getAccessToken={getApiAccessToken}
+        onSignIn={() =>
+          loginWithRedirect({
+            authorizationParams: {
+              scope: "openid profile email",
+            },
+          })
+        }
+        onSignOut={() =>
+          logout({
+            logoutParams: {
+              returnTo: window.location.origin,
+            },
+          })
+        }
+      />
+    </>
+  )
 }
 
-export default App;
+export default App
