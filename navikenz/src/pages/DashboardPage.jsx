@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createChat, deleteChat, fetchUserChats, sendChatMessage } from '../services/chatApi'
 import ChatLimitModal from "../components/ChatLimitModel"
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 function DashboardPage({ getAccessToken, greetingName, isAuthenticated, onSignIn, onSignOut, user }) {
   const [prompt, setPrompt] = useState('')
@@ -24,6 +26,8 @@ function DashboardPage({ getAccessToken, greetingName, isAuthenticated, onSignIn
 
     return user.email.split('@')[0]
   }, [greetingName, user])
+
+  const signedInLabel = isAuthenticated ? displayName || user?.email || "signed in" : "guest"
 
   const activeChat = useMemo(
     () => chats.find((chat) => chat.id === activeChatId) || null,
@@ -215,6 +219,18 @@ function DashboardPage({ getAccessToken, greetingName, isAuthenticated, onSignIn
         </nav>
 
         <div className="grid gap-3 border-t border-white/15 pt-3.5">
+          <div className="grid grid-cols-[34px_minmax(0,1fr)] items-center gap-2.5 rounded-lg border border-white/15 px-2.5 py-2">
+            <span className="grid size-[34px] place-items-center rounded-full bg-white text-xs font-black uppercase text-black">
+              {signedInLabel.slice(0, 1)}
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-extrabold uppercase text-white/45">User</p>
+              <p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-extrabold text-white">
+                {signedInLabel}
+              </p>
+            </div>
+          </div>
+
           <button
             className="min-h-[38px] rounded-lg border border-white/20 bg-black font-extrabold text-white hover:bg-white hover:text-black"
             onClick={isAuthenticated ? onSignOut : onSignIn}
@@ -250,8 +266,10 @@ function DashboardPage({ getAccessToken, greetingName, isAuthenticated, onSignIn
                     <article className="w-fit max-w-[min(560px,88%)] justify-self-end rounded-lg bg-white px-3.5 py-3 text-black">
                       {message.sent_message}
                     </article>
-                    <article className="w-fit max-w-[min(560px,88%)] justify-self-start rounded-lg border border-white/20 bg-black px-3.5 py-3 text-white">
-                      {message.received_message}
+                    <article className="markdown-response w-fit max-w-[min(640px,92%)] justify-self-start rounded-lg border border-white/20 bg-black px-3.5 py-3 text-white">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {message.received_message}
+                      </ReactMarkdown>
                     </article>
                   </div>
                 ))}

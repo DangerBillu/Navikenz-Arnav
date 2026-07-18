@@ -19,7 +19,9 @@ async function apiFetch(path, options, fallback) {
     return parseResponse(response, fallback)
   } catch (error) {
     if (error instanceof TypeError) {
-      throw new Error(`Could not reach the backend at ${apiUrl}. Start the FastAPI server and try again.`)
+      throw new Error(`Could not reach the backend at ${apiUrl}. Start the FastAPI server and try again.`, {
+        cause: error,
+      })
     }
 
     throw error

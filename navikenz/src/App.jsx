@@ -1,8 +1,10 @@
 import DashboardPage from "./pages/DashboardPage"
+import SignInPage from "./pages/SignInPage"
 import { useAuth0 } from "@auth0/auth0-react"
-import { useCallback } from "react"
+import { useCallback, useState } from "react"
 
 function App() {
+  const [isGuestSession, setIsGuestSession] = useState(false)
   const {
     isLoading,
     isAuthenticated,
@@ -25,6 +27,47 @@ function App() {
     return <div>Loading...</div>
   }
 
+  function handleSignIn() {
+    setIsGuestSession(false)
+    loginWithRedirect({
+      authorizationParams: {
+        scope: "openid profile email",
+      },
+    })
+  }
+
+  function handleSignUp() {
+    setIsGuestSession(false)
+    loginWithRedirect({
+      authorizationParams: {
+        screen_hint: "signup",
+        scope: "openid profile email",
+      },
+    })
+  }
+
+  function handleSignOut() {
+    setIsGuestSession(false)
+    logout({
+      logoutParams: {
+        returnTo: window.location.origin,
+      },
+    })
+  }
+
+  if (!isAuthenticated && !isGuestSession) {
+    return (
+      <>
+        {error && <p>{error.message}</p>}
+        <SignInPage
+          onContinueAsGuest={() => setIsGuestSession(true)}
+          onLogin={handleSignIn}
+          onSignup={handleSignUp}
+        />
+      </>
+    )
+  }
+
   return (
     <>
       {error && <p>{error.message}</p>}
@@ -34,20 +77,8 @@ function App() {
         user={user}
         isAuthenticated={isAuthenticated}
         getAccessToken={getApiAccessToken}
-        onSignIn={() =>
-          loginWithRedirect({
-            authorizationParams: {
-              scope: "openid profile email",
-            },
-          })
-        }
-        onSignOut={() =>
-          logout({
-            logoutParams: {
-              returnTo: window.location.origin,
-            },
-          })
-        }
+        onSignIn={handleSignIn}
+        onSignOut={handleSignOut}
       />
     </>
   )

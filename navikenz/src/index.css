@@ -1,1 +1,102 @@
 @import "tailwindcss";
+
+.markdown-response {
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.markdown-response > * + * {
+  margin-top: 0.8rem;
+}
+
+.markdown-response h1,
+.markdown-response h2,
+.markdown-response h3 {
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.markdown-response h1 {
+  font-size: 1.45rem;
+}
+
+.markdown-response h2 {
+  font-size: 1.25rem;
+}
+
+.markdown-response h3 {
+  font-size: 1.08rem;
+}
+
+.markdown-response ul,
+.markdown-response ol {
+  padding-left: 1.4rem;
+}
+
+.markdown-response ul {
+  list-style: disc;
+}
+
+.markdown-response ol {
+  list-style: decimal;
+}
+
+.markdown-response li + li {
+  margin-top: 0.35rem;
+}
+
+.markdown-response blockquote {
+  border-left: 3px solid rgb(255 255 255 / 0.35);
+  color: rgb(255 255 255 / 0.78);
+  padding-left: 0.9rem;
+}
+
+.markdown-response a {
+  color: rgb(147 197 253);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.markdown-response code {
+  background: rgb(255 255 255 / 0.12);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 0.35rem;
+  font-size: 0.9em;
+  padding: 0.1rem 0.28rem;
+}
+
+.markdown-response pre {
+  background: rgb(255 255 255 / 0.08);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  padding: 0.85rem;
+}
+
+.markdown-response pre code {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  display: block;
+  padding: 0;
+}
+
+.markdown-response table {
+  border-collapse: collapse;
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.markdown-response th,
+.markdown-response td {
+  border: 1px solid rgb(255 255 255 / 0.18);
+  padding: 0.45rem 0.65rem;
+  text-align: left;
+}
+
+.markdown-response th {
+  background: rgb(255 255 255 / 0.1);
+  font-weight: 800;
+}
