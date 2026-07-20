@@ -211,19 +211,18 @@ def _fetch_user_info(owner: str) -> str:
 def github_lookup(query: str) -> str:
     """
     Looks up a GitHub user, organization, or repository and returns key public details.
-
     Accepts any of:
-    - a username or org name, e.g. "torvalds"
-    - an "owner/repo" string, e.g. "torvalds/linux"
-    - a full GitHub URL, e.g. "https://github.com/torvalds" or
-      "https://github.com/torvalds/linux/tree/master"
+    - a username or org name, e.g. "dangerbillu"
+    - an "owner/repo" string, e.g. "dangerbillu/catalyx"
+    - a full GitHub URL, e.g. "https://github.com/dangerbillu" or
+      "https://github.com/dagerbillu/catalyx/tree/master"
 
     Use this whenever the user asks about a GitHub profile, org, or repository,
     or shares a github.com link and wants details like stars, forks, followers,
     bio, description, or primary language. Never make up GitHub stats yourself.
     """
     if not query or not query.strip():
-        return "Please provide a GitHub username, 'owner/repo', or a github.com link."
+        return "Please provide a GitHub username, 'owner/repo', or a github link."
 
     try:
         owner, repo = _parse_github_query(query)
