@@ -195,7 +195,7 @@ def check_database_connection():
         connection.execute(text("SELECT 1"))
     return True
 
-def reset_guest_limits():
+def sync_guest_chat_counts():
     inspector = inspect(engine)
     table_names = inspector.get_table_names()
     if "users" not in table_names:
@@ -205,23 +205,18 @@ def reset_guest_limits():
     if {"is_guest", "guest_chat_count"}.issubset(columns):
         true_value = "TRUE" if engine.dialect.name == "postgresql" else "1"
         with engine.begin() as connection:
-            if {"chat_sessions", "messages"}.issubset(table_names):
-                connection.execute(
-                    text(
-                        "DELETE FROM messages WHERE chat_session_id IN ("
-                        "SELECT chat_sessions.id FROM chat_sessions "
-                        "JOIN users ON users.id = chat_sessions.user_id "
-                        f"WHERE users.is_guest = {true_value})"
-                    )
+            if "chat_sessions" not in table_names:
+                connection.execute(text(f"UPDATE users SET guest_chat_count = 0 WHERE is_guest = {true_value}"))
+                return
+
+            connection.execute(
+                text(
+                    "UPDATE users SET guest_chat_count = ("
+                    "SELECT COUNT(*) FROM chat_sessions "
+                    "WHERE chat_sessions.user_id = users.id"
+                    f") WHERE is_guest = {true_value}"
                 )
-            if "chat_sessions" in table_names:
-                connection.execute(
-                    text(
-                        "DELETE FROM chat_sessions WHERE user_id IN ("
-                        f"SELECT id FROM users WHERE is_guest = {true_value})"
-                    )
-                )
-            connection.execute(text(f"UPDATE users SET guest_chat_count = 0 WHERE is_guest = {true_value}"))
+            )
 
 def get_db():
     db = SessionLocal()

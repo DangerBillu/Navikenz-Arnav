@@ -15,7 +15,7 @@ from backend.database.connection import (
     ensure_chat_schema,
     ensure_message_schema,
     ensure_user_schema,
-    reset_guest_limits,
+    sync_guest_chat_counts,
 )
 from backend.models.chat_session import ChatSession
 from backend.models.message import Message
@@ -32,7 +32,7 @@ async def lifespan(_app: FastAPI):
     ensure_user_schema()
     ensure_chat_schema()
     ensure_message_schema()
-    reset_guest_limits()
+    sync_guest_chat_counts()
     yield
 
 

@@ -28,7 +28,7 @@ async function apiFetch(path, options, fallback) {
   }
 }
 
-function getAnonymousUserId() {
+export function getAnonymousUserId() {
   let anonymousUserId = window.localStorage.getItem(anonymousUserIdKey)
   if (!anonymousUserId) {
     anonymousUserId = crypto.randomUUID()
@@ -38,9 +38,12 @@ function getAnonymousUserId() {
 }
 
 function authHeaders(accessToken, includeJson = false) {
+  const anonymousHeader = { "X-Anonymous-User-Id": getAnonymousUserId() }
+
   return {
     ...(includeJson ? { "Content-Type": "application/json" } : {}),
-    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : { "X-Anonymous-User-Id": getAnonymousUserId() }),
+    ...anonymousHeader,
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
   }
 }
 

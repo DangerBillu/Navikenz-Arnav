@@ -23,6 +23,22 @@ def get_or_create_guest_user(db: Session, anonymous_user_id: str) -> User:
     return user
 
 
+def get_guest_user_by_anonymous_id(db: Session, anonymous_user_id: str) -> User | None:
+    return (
+        db.query(User)
+        .filter(
+            User.auth0_subject == f"guest:{anonymous_user_id}",
+            User.is_guest.is_(True),
+        )
+        .first()
+    )
+
+
+def delete_user(db: Session, user: User):
+    db.delete(user)
+    db.commit()
+
+
 def _fallback_email(subject: str) -> str:
     digest = sha256(subject.encode("utf-8")).hexdigest()[:24]
     return f"auth0-{digest}@auth0.local"

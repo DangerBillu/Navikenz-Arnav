@@ -4,7 +4,7 @@ import ChatLimitModal from "../components/ChatLimitModel"
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-function DashboardPage({ getAccessToken, greetingName, isAuthenticated, onSignIn, onSignOut, user }) {
+function DashboardPage({ getAccessToken, greetingName, isAuthenticated, onSignIn, onSignOut, onSignUp, user }) {
   const [prompt, setPrompt] = useState('')
   const [chats, setChats] = useState([])
   const [activeChatId, setActiveChatId] = useState(null)
@@ -311,7 +311,7 @@ function DashboardPage({ getAccessToken, greetingName, isAuthenticated, onSignIn
       <ChatLimitModal
         isOpen={showLimitModal}
         onClose={() => setShowLimitModal(false)}
-        onSignIn={onSignIn}
+        onSignUp={onSignUp}
       />
     </main>
   )

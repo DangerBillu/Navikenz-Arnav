@@ -78,6 +78,7 @@ function App() {
         isAuthenticated={isAuthenticated}
         getAccessToken={getApiAccessToken}
         onSignIn={handleSignIn}
+        onSignUp={handleSignUp}
         onSignOut={handleSignOut}
       />
     </>

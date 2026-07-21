@@ -6,7 +6,7 @@ from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 from backend.config import settings
-from backend.crud import user_crud
+from backend.crud import chat_crud, user_crud
 from backend.database.connection import get_db
 from backend.models.user import User
 
@@ -26,6 +26,20 @@ def _create_guest_user(db: Session, anonymous_user_id: str | None) -> User:
         anonymous_user_id = "guest"
 
     user = user_crud.get_or_create_guest_user(db, anonymous_user_id)
+    return user
+
+
+def _transfer_guest_session(db: Session, user: User, anonymous_user_id: str | None) -> User:
+    if not anonymous_user_id:
+        return user
+
+    guest_user = user_crud.get_guest_user_by_anonymous_id(db, anonymous_user_id)
+    if guest_user is None or guest_user.id == user.id:
+        return user
+
+    chat_crud.transfer_user_chats(db, guest_user.id, user.id)
+    user_crud.delete_user(db, guest_user)
+    db.refresh(user)
     return user
 
 
@@ -65,7 +79,8 @@ def get_current_user(
         subject = claims.get("sub")
         if not subject:
             _unauthorized()
-        return user_crud.get_or_create_auth0_user(db, subject, claims)
+        user = user_crud.get_or_create_auth0_user(db, subject, claims)
+        return _transfer_guest_session(db, user, anonymous_user_id)
 
     if anonymous_user_id:
         return _create_guest_user(db, anonymous_user_id)
