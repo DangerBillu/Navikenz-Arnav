@@ -1,6 +1,6 @@
 # AI Agent
 
-This package builds the LangGraph-powered assistant used by chat services. The package exports `get_assistant_reply` from `__init__.py`, so callers can depend on `from backend.ai_agent import get_assistant_reply` without knowing the internal file layout.
+This package builds the Langchain powered assistant used by chat services. The package exports `get_assistant_reply` from `__init__.py`, so callers can depend on `from backend.ai_agent import get_assistant_reply` without knowing the internal file layout.
 
 ## Files
 
@@ -14,6 +14,6 @@ This package builds the LangGraph-powered assistant used by chat services. The p
 
 ## Notes
 
-- Keep model/provider setup isolated in `llm.py`.
-- Add new assistant tools in `tools.py`; place larger external API clients in their own helper modules.
-- Keep `agent.py` focused on orchestration and the public response contract.
+- Model setup in `llm.py`.
+- Assistant tools are setup in `tools.py`
+- `agent.py` is for response contracts.
