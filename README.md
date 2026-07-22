@@ -1,6 +1,5 @@
 # Navikenz
-
-Navikenz is a full-stack chat application with a FastAPI backend and a Vite React frontend. The backend owns authentication-aware chat persistence, guest limits, and AI response generation. The frontend owns the Auth0 entry flow, guest session handling, and the chat dashboard experience.
+This is a chatbot application with a FastAPI backend and a Vite React frontend. The backend has features like guest chat limits, and AI response generation. The frontend owns the Auth0 entry flow, guest session handling, and the chat dashboard experience.
 
 ## Structure
 
@@ -10,9 +9,7 @@ Navikenz is a full-stack chat application with a FastAPI backend and a Vite Reac
 - `requirements.txt` and `navikenz/package.json` describe backend and frontend dependencies.
 
 ## Development Notes
-
-- Keep business rules in `backend/services`.
-- Keep database reads/writes in `backend/crud`.
-- Keep request/response contracts in `backend/schemas`.
+- Keep methods/fucntions in `backend/services`.
+- Keep database reads and writes in `backend/crud`.
+- Keep validations in `backend/schemas`.
 - Keep frontend API calls in `navikenz/src/services`.
-- Avoid editing generated folders such as `node_modules`, `dist`, and `__pycache__`.

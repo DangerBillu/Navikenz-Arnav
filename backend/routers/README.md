@@ -1,14 +1,13 @@
 # Routers
 
-This folder contains FastAPI routers. Routers define HTTP endpoints, request dependencies, response models, and endpoint-specific status handling.
+This folder contains FastAPI routes. Routers define HTTP endpoints, request dependencies, response models, and endpoint-specific status handling.
 
 ## Files
 
-- `chat.py` exposes chat creation, listing, dashboard stats, detail retrieval, deletion, and message sending.
-- `users.py` exposes the health check endpoint.
+- `chat.py` - this file has functions like chat creation, listing, dashboard stats, detail retrieval, deletion, and message sending.
+- `users.py` - this file checks the connection/health of the database.
 
 ## Guidelines
 
-- Keep route handlers thin.
-- Delegate business logic to `backend/services`.
-- Use Pydantic schemas from `backend/schemas` for request and response contracts.
+- Write logic/methods in `backend/services`.
+- Use Pydantic schemas from `backend/schemas` for request and response validation/sctructure.
